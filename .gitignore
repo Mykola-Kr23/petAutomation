@@ -1,0 +1,6 @@
+target/*
+.allure/
+.idea/
+output/
+allure-results/
+dominos_example.mp4

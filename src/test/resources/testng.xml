@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All test suite">
+    <test name="DominosUkraine">
+        <classes>
+            <class name="tests.addSomePizzasToOrder.AddSomePizzasToOrderTest"></class>
+            <class name="tests.changeToppings.ChangeToppingsTest"></class>
+            <class name="tests.orderForm.OrderFormTest"></class>
+        </classes>
+    </test> <!-- Test -->
+</suite> <!-- Suite -->
