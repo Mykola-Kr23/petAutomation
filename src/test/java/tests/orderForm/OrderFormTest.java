@@ -1,12 +1,10 @@
 package tests.orderForm;
 
-import common.testOrder.OrderItem;
 import io.qameta.allure.Description;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -24,10 +22,9 @@ public class OrderFormTest extends BaseTest {
         pizzaMenuPage.addPizzaToOrderList(pizzaMenuPage.selectPizzaCard("random").getOrderItem())
                 .goToDeliveryPage();
     }
-
     @Test (description = "Phone number text box testing", priority = 0)
     @Severity(SeverityLevel.BLOCKER)
-    void phoneInputFieldTest() throws InterruptedException {
+    void phoneInputFieldTest(){
         phoneIsEmpty();
         phoneShowMask();
         phoneNoNumberInput();
@@ -35,128 +32,102 @@ public class OrderFormTest extends BaseTest {
         phoneIncompleteInput();
         phoneMaximumLengthInput();
         phoneValidNumberInput();
-        //clearPhoneField();
     }
     @Test (description = "Email text box testing", priority = 1)
-    void emailInputFieldTest() throws InterruptedException {
-        boolean validError = false;
-        boolean invalidError = false;
+    void emailInputFieldTest(){
         emailIsEmpty();
-        validError = validEmailInput();
-        invalidError = invalidEmailInput();
-        Assert.assertTrue(validError & invalidError);
+        Assert.assertTrue(validEmailInput() && invalidEmailInput());
     }
-    @Test (description = "Street select testing", priority = 2)
-    void streetInputFieldTest() throws InterruptedException {
+    @Test (description = "Street input testing", priority = 2)
+    void streetInputFieldTest(){
         streetIsEmpty();
         streetInput("Миру","Миру",true);
-        driver.navigate().refresh();
         streetInput("abr", "Абр", true);
-        driver.navigate().refresh();
         streetInput("123","123", false);
     }
-    @Test (description = "Street Number Field testing", priority = 3)
-    void streetNumberFiledTest() throws InterruptedException {
+    @Test (description = "Street Number text box testing", priority = 3)
+    void streetNumberFiledTest(){
         streetNumberIsEmpty();
         streetNumberMaximumSizeInput();
         streetNumberValidInput("9");
     }
-    @Test (description = "Payment method select testing", priority = 4)
+    @Test (description = "Payment method selector testing", priority = 4)
     @Description("If selected nothing - get error message")
-    void paymentMethodTest() throws InterruptedException {
-        driver.navigate().refresh();
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.paymentTypeSelectErrorLabel.getText(), "Це поле є обов'язковим.");
+    void paymentMethodTest(){
+        deliveryPage.refresh();
+        String actualMessage = deliveryPage.confirmOrder()
+                .getErrorMessage("paymentType");
+        Assert.assertEquals(actualMessage, "Це поле є обов'язковим.");
     }
 
     /** Phone number input steps */
 
     @Step("Empty field -> get message if confirm")
-    void phoneIsEmpty() throws InterruptedException {
-        String errorMessage = deliveryPage.clearPhoneField()
+    void phoneIsEmpty(){
+        String actualMessage = deliveryPage.clearField("phone")
                 .confirmOrder()
-                .sleep()
-                .getPhoneFieldErrorMessage();
-        Assert.assertEquals(errorMessage, "Це поле є обов'язковим.");
+                .getErrorMessage("phone");
+        Assert.assertEquals(actualMessage,"Це поле є обов'язковим.");
     }
     @Step("Phone mask is shown - if click")
     void phoneShowMask(){
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.click();
-        Assert.assertEquals(deliveryPage.phoneField.getAttribute("value"), "380             ");
+        String mask = deliveryPage.clearField("phone")
+                .clickField("phone")
+                .getCurrentNumber();
+        Assert.assertEquals(mask, "380             ");
     }
     @Step("Letters and Chars input(negative)")
-    void phoneNoNumberInput() throws InterruptedException {
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.click();
-        deliveryPage.phoneField.sendKeys("AbЫз?#`/$");
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.phoneField.getAttribute("value"), "380             ");
+    void phoneNoNumberInput(){
+        String inputValue = deliveryPage.clearField("phone")
+                .setPhoneNumber("AbЫз?#`/$")
+                .confirmOrder()
+                .getCurrentNumber();
+        Assert.assertEquals(inputValue, "");
     }
     @Step("Input number use only zero: 380000000000")
-    void phoneZeroNumberInput() throws InterruptedException {
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.sendKeys("000000000");
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.phoneFieldErrorLabel.getText(), "Невірний номер телефону");
+    void phoneZeroNumberInput(){
+        String actualMessage = deliveryPage.clearField("phone")
+                .setPhoneNumber("000000000")
+                .confirmOrder()
+                .getErrorMessage("phone");
+        Assert.assertEquals(actualMessage,"Невірний номер телефону");
     }
     @Step("Incomplete input")
-    void phoneIncompleteInput() throws InterruptedException {
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.sendKeys("9");
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.phoneFieldErrorLabel.getText(), "Значення не відповідає необхідному патерну.");
+    void phoneIncompleteInput(){
+        String actualMessage = deliveryPage.clearField("phone")
+                .setPhoneNumber("9")
+                .confirmOrder()
+                .getErrorMessage("phone");
+        Assert.assertEquals(actualMessage,"Значення не відповідає необхідному патерну.");
     }
     @Step("maximum length + 1 input")
     void phoneMaximumLengthInput(){
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.sendKeys("9381206625");
-        Assert.assertEquals(deliveryPage.phoneField.getAttribute("value"), "380 93 812 06 62");
+        String inputValue = deliveryPage.clearField("phone")
+                .setPhoneNumber("9381209925")
+                .getCurrentNumber();
+        Assert.assertEquals(inputValue, "380 93 812 09 92");
     }
     @Step("Valid phone number input")
-    void phoneValidNumberInput() throws InterruptedException {
-        deliveryPage.clearPhoneField();
-        deliveryPage.phoneField.sendKeys("938120661");
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.phoneField.getAttribute("value"), "380 93 812 06 61");
-        Assert.assertEquals(deliveryPage.phoneFieldErrorLabel.getText(), "");
+    void phoneValidNumberInput(){
+        String actualMessage = deliveryPage.clearField("phone")
+                .setPhoneNumber("938120991")
+                .confirmOrder()
+                .getErrorMessage("phone");
+        Assert.assertEquals(actualMessage,"");
+        Assert.assertEquals(deliveryPage.getCurrentNumber(), "380 93 812 09 91");
     }
-/*    void clearPhoneField(){
-        deliveryPage.phoneField.sendKeys(Keys.CONTROL + "a");
-        deliveryPage.phoneField.sendKeys(Keys.DELETE);
-    }*/
 
     /** Email input steps */
 
     @Step("Empty field -> get message if confirm")
     void emailIsEmpty(){
-        clearEmailField();
-        deliveryPage.emailField.click();
-        deliveryPage.confirmOrder();
+        String actualMessage = deliveryPage.clearField("email")
+                .clickField("email")
+                .confirmOrder()
+                .getErrorMessage("email");
+        Assert.assertEquals(actualMessage, "Поле не може бути порожнім");
     }
-    @Step("input type: {1}, email: {0}")
-    void emailInput(String email, String type) throws InterruptedException{
-            String expectedMessage = "";
-            clearEmailField();
-            deliveryPage.emailField.sendKeys(email);
-            deliveryPage.confirmOrder();
-            Thread.sleep(500);
-                if (type.equals("valid")){
-                        expectedMessage = "";
-                } else if (type.equals("invalid")){
-                        expectedMessage = "Введіть коректну адресу електронної пошти.";
-                }
-                Assert.assertEquals(deliveryPage.emailFieldErrorlabel.getText(), expectedMessage);
-            }
-    void clearEmailField(){
-        deliveryPage.emailField.sendKeys(Keys.CONTROL + "a");
-        deliveryPage.emailField.sendKeys(Keys.DELETE);
-    }
-    boolean validEmailInput() throws InterruptedException {
+    boolean validEmailInput(){
         boolean error = false;
         String[] validEmailTypes = {
                 "abc@gmail.com",
@@ -176,12 +147,13 @@ public class OrderFormTest extends BaseTest {
                 emailInput(validEmailTypes[i], "valid");
             } catch (AssertionError e){
                 error = true;
+                System.out.println("Input: " + validEmailTypes[i] + ". Actual: invalid. Expected: valid.");
             }
         }
-        clearEmailField();
+        deliveryPage.clearField("email");
         return (error);
     }
-    boolean invalidEmailInput() throws InterruptedException {
+    boolean invalidEmailInput(){
         boolean error = false;
         String[] invalidEmailTypes = {
                 "abc@gmailcom",
@@ -197,64 +169,75 @@ public class OrderFormTest extends BaseTest {
                 emailInput(invalidEmailTypes[i], "invalid");
             } catch (AssertionError e){
                 error = true;
+                System.out.println("Input: " + invalidEmailTypes[i] + ". Actual: valid. Expected: invalid.");
             }
         }
-        clearEmailField();
+        deliveryPage.clearField("email");
         return (error);
+    }
+    @Step("input type: {1}, email: {0}")
+    void emailInput(String email, String type){
+        String expectedMessage = null;
+        String actualMessage = deliveryPage.clearField("email")
+                .setEmail(email)
+                .confirmOrder()
+                .getErrorMessage("email");
+        if (type.equals("valid")){
+            expectedMessage = "";
+        } else if (type.equals("invalid")){
+            expectedMessage = "Введіть коректну адресу електронної пошти.";
+        }
+        Assert.assertEquals(actualMessage, expectedMessage);
     }
 
     /** Street input steps */
 
     @Step("Empty field -> get message if confirm")
-    void streetIsEmpty() throws InterruptedException {
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.streetSelectErrorLabel.getText(),"Це поле є обов'язковим.");
+    void streetIsEmpty(){
+        String actualMessage = deliveryPage.clearField("street")
+                .confirmOrder()
+                .getErrorMessage("street");
+        Assert.assertEquals(actualMessage, "Це поле є обов'язковим.");
     }
     @Step("Input {0}, {2}")
-    void streetInput(String inputStreet, String expectedStreet, boolean valid) throws InterruptedException {
-        deliveryPage.streetSelect.sendKeys(inputStreet);
-        deliveryPage.streetSelect.sendKeys(Keys.ARROW_DOWN);
-        deliveryPage.streetSelect.sendKeys(Keys.ENTER);
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        //Assert.assertTrue(driver.findElement(By.xpath("//div[contains(text(), '" + expectedStreet + "')]")).isDisplayed());
-        if (valid == true){
+    void streetInput(String inputStreet, String expectedStreet, boolean valid){
+        deliveryPage.refresh();
+        String actualMessage = deliveryPage.setStreet(inputStreet)
+                .selectStreetFromDropDown(1)
+                .confirmOrder()
+                .getErrorMessage("street");
+        if (valid){
             Assert.assertTrue(driver.findElement(By.xpath("//div[contains(text(), '" + expectedStreet + "')]")).isDisplayed());
-            Assert.assertEquals(deliveryPage.streetSelectErrorLabel.getText(), "");
+            Assert.assertEquals(actualMessage, "");
         } else {
-            Assert.assertEquals(deliveryPage.streetSelectErrorLabel.getText(), "Це поле є обов'язковим.");
+            Assert.assertEquals(actualMessage, "Це поле є обов'язковим.");
         }
     }
 
     /**street number input steps*/
 
-    void clearStreetNumberField(){
-        deliveryPage.streetNumberField.sendKeys(Keys.CONTROL + "a");
-        deliveryPage.streetNumberField.sendKeys(Keys.DELETE);
-    }
     @Step("Empty field -> get message if confirm")
-    void streetNumberIsEmpty() throws InterruptedException {
-        clearStreetNumberField();
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.streetNumberFiledErrorLabel.getText(), "Це поле є обов'язковим.");
+    void streetNumberIsEmpty(){
+        String actualMessage = deliveryPage.clearField("streetNumber")
+                .confirmOrder()
+                .getErrorMessage("streetNumber");
+        Assert.assertEquals(actualMessage, "Це поле є обов'язковим.");
     }
     @Step("Maximum length is 10 chars, if more - get message")
-    void streetNumberMaximumSizeInput() throws InterruptedException {
-        clearStreetNumberField();
-        deliveryPage.streetNumberField.sendKeys("1000000000А");
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.streetNumberFiledErrorLabel.getText(), "Переконайтесь, що кількість символів в цьому полі не перевищує 10.");
+    void streetNumberMaximumSizeInput(){
+        String actualMessage = deliveryPage.clearField("streetNumber")
+                .setStreerNumber("1000000000А")
+                .confirmOrder()
+                .getErrorMessage("streetNumber");
+        Assert.assertEquals(actualMessage, "Переконайтесь, що кількість символів в цьому полі не перевищує 10.");
     }
     @Step("Valid input without error message")
-    void streetNumberValidInput(String streetNumber) throws InterruptedException {
-        clearStreetNumberField();
-        deliveryPage.streetNumberField.sendKeys(streetNumber);
-        deliveryPage.confirmOrder();
-        Thread.sleep(500);
-        Assert.assertEquals(deliveryPage.streetNumberFiledErrorLabel.getText(), "");
+    void streetNumberValidInput(String streetNumber){
+        String actualMessage = deliveryPage.clearField("streetNumber")
+                .setStreerNumber(streetNumber)
+                .confirmOrder()
+                .getErrorMessage("streetNumber");
+        Assert.assertEquals(actualMessage, "");
     }
 }
 

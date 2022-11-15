@@ -2,11 +2,9 @@ package tests.changeToppings;
 
 import common.testOrder.OrderItem;
 import io.qameta.allure.Step;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import pages.changeToppings.ChangeToppingsPage;
 import pages.PizzaMenu.PizzaOrderCard;
-import pages.dominosUkDelivery.DeliveryPage;
 import tests.base.BaseTest;
 
 import static constants.Constant.Urls.DOMINOS_UK_PIZZA_MENU_PAGE;
@@ -15,7 +13,7 @@ public class ChangeToppingsTest extends BaseTest {
     OrderItem customPizza;
     ChangeToppingsPage changeToppingsPage;
 
-    @Test
+    @Test(description = "Select pizza and change random toppings")
     void changeToppingsTest(){
         pizzaMenuPage.open(DOMINOS_UK_PIZZA_MENU_PAGE);
         pizzaMenuPage.selectLocalization("chornomorsk").refresh();
